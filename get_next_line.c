@@ -6,7 +6,7 @@
 /*   By: vinida-s <vinida-s@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/22 21:09:01 by vinida-s          #+#    #+#             */
-/*   Updated: 2026/06/05 18:40:12 by vinida-s         ###   ########.fr       */
+/*   Updated: 2026/06/07 20:50:23 by vinida-s         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,11 +72,11 @@ static char	*ft_separate(char *stash)
 	while (stash[i] && stash[i] != '\n')
 		i++;
 	if (!stash[i] || !stash[i + 1])
-		return (free(stash), NULL);
+		return (free(stash), stash = NULL, NULL);
 	i++;
 	str = malloc(sizeof(char) * (ft_strlen(stash + i) + 1));
 	if (!str)
-		return (free(stash), NULL);
+		return (free(stash), stash = NULL, NULL);
 	j = 0;
 	while (stash[i])
 	{
@@ -107,6 +107,8 @@ char	*get_next_line(int fd)
 	}
 	stash = tempstash;
 	line = extract_line(stash);
+	if (!line)
+		return (free(stash), stash = NULL, NULL);
 	stash = ft_separate(stash);
 	if (!stash)
 		stash = NULL;

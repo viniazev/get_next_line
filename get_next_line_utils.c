@@ -6,7 +6,7 @@
 /*   By: vinida-s <vinida-s@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/25 19:56:29 by vinida-s          #+#    #+#             */
-/*   Updated: 2026/06/05 18:09:22 by vinida-s         ###   ########.fr       */
+/*   Updated: 2026/06/07 20:26:41 by vinida-s         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,24 +41,24 @@ char	*ft_strchr(const char *s, int c)
 	return (NULL);
 }
 
-void	*ft_memcpy(void *dest, const void *src, size_t n)
-{
-	size_t				i;
-	unsigned char		*destine;
-	const unsigned char	*source;
+// void	*ft_memcpy(void *dest, const void *src, size_t n)
+// {
+// 	size_t				i;
+// 	unsigned char		*destine;
+// 	const unsigned char	*source;
 
-	if (!dest && !src)
-		return (NULL);
-	destine = (unsigned char *)dest;
-	source = (const unsigned char *)src;
-	i = 0;
-	while (i < n)
-	{
-		destine[i] = source[i];
-		i++;
-	}
-	return (dest);
-}
+// 	if (!dest && !src)
+// 		return (NULL);
+// 	destine = (unsigned char *)dest;
+// 	source = (const unsigned char *)src;
+// 	i = 0;
+// 	while (i < n)
+// 	{
+// 		destine[i] = source[i];
+// 		i++;
+// 	}
+// 	return (dest);
+// }
 
 char	*ft_strjoin(char *s1, char *s2)
 {
@@ -77,7 +77,7 @@ char	*ft_strjoin(char *s1, char *s2)
 	}
 	catstr = malloc(ft_strlen(s1) + ft_strlen(s2) + 1);
 	if (!catstr)
-		return (NULL);
+		return (free(s1), s1 = NULL, NULL);
 	i = -1;
 	j = -1;
 	while (s1[++i])
