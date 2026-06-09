@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line_utils.c                              :+:      :+:    :+:   */
+/*   get_next_line_utils_bonus.c                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: vinida-s <vinida-s@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/25 19:56:29 by vinida-s          #+#    #+#             */
-/*   Updated: 2026/06/09 23:27:54 by vinida-s         ###   ########.fr       */
+/*   Updated: 2026/06/09 23:22:45 by vinida-s         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 
 int	ft_strlen(const char *s)
 {
@@ -67,12 +67,12 @@ char	*ft_strjoin(char *s1, char *s2)
 	int		j;
 
 	if (!s2)
-		return (free(s1), s1 = NULL, NULL);
+		return (NULL);
 	if (!s1)
 	{
 		s1 = malloc(1);
 		if (!s1)
-			return (free(s1), s1 = NULL, NULL);
+			return (NULL);
 		s1[0] = '\0';
 	}
 	catstr = malloc(ft_strlen(s1) + ft_strlen(s2) + 1);

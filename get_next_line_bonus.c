@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: vinida-s <vinida-s@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/22 21:09:01 by vinida-s          #+#    #+#             */
-/*   Updated: 2026/06/09 23:19:29 by vinida-s         ###   ########.fr       */
+/*   Updated: 2026/06/09 23:22:38 by vinida-s         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 
 static char	*read_store(int fd, char *stash)
 {
@@ -96,7 +96,7 @@ char	*get_next_line(int fd)
 	char		*line;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
-		return (free(stash), stash = NULL, NULL);
+		return (NULL);
 	tempstash = read_store(fd, stash);
 	if (!tempstash)
 	{
