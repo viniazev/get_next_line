@@ -1,0 +1,311 @@
+================================================================================
+GET_NEXT_LINE - CODE EXPLANATION AND MEMORY MANAGEMENT
+================================================================================
+
+PROJECT OVERVIEW:
+The get_next_line project implements a function that reads lines from a file
+descriptor one line at a time. Each call returns the next complete line (up to
+and including the newline character '\n'). BUFFER_SIZE controls how many bytes
+are read per operation (default is 1, can be adjusted at compilation).
+
+================================================================================
+KEY MEMORY COMPONENTS:
+================================================================================
+
+1. STATIC VARIABLE - "stash":
+   - Persists between function calls within the same program execution
+   - Stores leftover data that hasn't been extracted as a complete line yet
+   - Initially NULL on first call, then maintains previous unread content
+   - Memory location: stays on the stack/heap throughout program lifetime
+
+2. TEMPORARY BUFFER - "buff":
+   - Allocated fresh each call to read_store()
+   - Size: BUFFER_SIZE + 1 bytes
+   - Holds data read from the file descriptor
+   - Freed when read_store() completes
+
+3. LINE BUFFER - "line":
+   - Allocated in extract_line()
+   - Size: exactly enough for one complete line
+   - Returned to caller (caller must free it)
+   - Contains from start of stash up to and including '\n'
+
+================================================================================
+DETAILED FUNCTION FLOW & MEMORY STEPS:
+================================================================================
+
+FUNCTION: get_next_line(int fd)
+LOCATION: get_next_line.c (main entry point)
+
+STEP 1: Input Validation
+   - Check if fd < 0 or BUFFER_SIZE <= 0 (invalid inputs)
+   - If invalid: free stash, set to NULL, return NULL
+   - This prevents reading from invalid file descriptors
+
+STEP 2: Call read_store()
+   FUNCTION: read_store(int fd, char *stash)
+   LOCATION: get_next_line.c (lines 16-33)
+   
+   PURPOSE: Fill stash with data until a newline is found or EOF
+   
+   MEMORY OPERATIONS:
+   a) Allocate buff = malloc(BUFFER_SIZE + 1)
+      - New memory allocation on heap
+      - If allocation fails, free stash and return NULL
+   
+   b) While loop - keeps reading until '\n' found or EOF:
+      - Check if newline exists in current stash using ft_strchr()
+      - If found, exit loop
+      - Read next BUFFER_SIZE bytes from file: read(fd, buff, BUFFER_SIZE)
+      - Check read status:
+        * If readstatus == -1: error, free buff and stash, return NULL
+        * If readstatus == 0: EOF reached, break loop
+      - Null-terminate buff: buff[readstatus] = '\0'
+      - Concatenate buff to stash: stash = ft_strjoin(stash, buff)
+        - This creates NEW memory for combined string
+        - Frees the old stash automatically
+   
+   c) After loop, free buff
+      - buff is no longer needed
+      - stash now contains all data up to '\n' or EOF
+   
+   d) Return updated stash
+
+STEP 3: Validate read_store Result
+   - If read_store returned NULL: set stash to NULL, return NULL
+   - Continue if stash has data
+
+STEP 4: Call extract_line()
+   FUNCTION: extract_line(char *stash)
+   LOCATION: get_next_line.c (lines 35-59)
+   
+   PURPOSE: Extract one complete line from stash (start to '\n')
+   
+   MEMORY OPERATIONS:
+   a) Check if stash is NULL or empty: return NULL if true
+   
+   b) Find newline position:
+      - Count characters until '\n' or null terminator (variable j)
+      - If newline found, increment j to include the '\n'
+   
+   c) Allocate line buffer:
+      - line = malloc(j + 1)
+      - Size exactly matches the line to extract (including '\n' and null term)
+      - If allocation fails, return NULL
+   
+   d) Copy characters to line:
+      - Loop from 0 to j-1, copy each character
+      - Null-terminate: line[i] = '\0'
+   
+   e) Return line (caller now owns this memory and must free it)
+
+STEP 5: Call ft_separate()
+   FUNCTION: ft_separate(char *stash)
+   LOCATION: get_next_line.c (lines 61-89)
+   
+   PURPOSE: Extract leftover data AFTER the newline for next call
+   
+   MEMORY OPERATIONS:
+   a) Check if stash is NULL: return NULL
+   
+   b) Find newline position (variable i):
+      - Count until '\n' found
+   
+   c) Check if anything after newline:
+      - If no newline found or nothing after it: free stash, return NULL
+      - This handles EOF case - no more data to read
+   
+   d) If data exists after newline:
+      - Increment i to point AFTER the '\n'
+      - Calculate new string length: ft_strlen(stash + i)
+      - Allocate new stash: str = malloc(length + 1)
+      - If allocation fails: free old stash, return NULL
+   
+   e) Copy remaining data to new stash:
+      - Loop through stash starting at position i
+      - Copy each character to str
+      - Null-terminate: str[j] = '\0'
+   
+   f) Free old stash (no longer needed)
+      - This is critical! Old stash is replaced with new one
+   
+   g) Return str (becomes the new static stash for next call)
+
+STEP 6: Finalize and Return
+   - If ft_separate failed: set stash to NULL
+   - Return the line extracted in STEP 4
+   - stash is now ready for next get_next_line() call
+
+================================================================================
+HELPER FUNCTIONS & MEMORY:
+================================================================================
+
+FUNCTION: ft_strlen(const char *s)
+- Counts characters in string (no memory allocation)
+- Returns length without null terminator
+- Used to calculate malloc sizes
+
+FUNCTION: ft_strchr(const char *s, int c)
+- Searches for character 'c' in string
+- Returns pointer to first occurrence or NULL
+- No memory allocation (just pointer manipulation)
+- Used to find newlines in data
+
+FUNCTION: ft_strjoin(char *s1, char *s2)
+- Concatenates two strings into new memory
+- MEMORY OPERATIONS:
+  a) Validate s2 exists, free s1 if not
+  b) If s1 is NULL, allocate empty string (1 byte for '\0')
+  c) Allocate new buffer: malloc(len(s1) + len(s2) + 1)
+  d) Copy s1 characters to new buffer
+  e) Copy s2 characters immediately after s1
+  f) Null-terminate combined string
+  g) Free original s1 (freed at end)
+  h) Return new concatenated string
+- CRITICAL: s1 is ALWAYS freed, even on error
+
+================================================================================
+MEMORY LIFECYCLE EXAMPLE - Reading 3 Lines:
+================================================================================
+
+FILE CONTENT:
+"Hello\nWorld\nC!\n"
+
+CALL 1: get_next_line(fd)
+---------
+Initial:
+  stash = NULL
+
+After read_store:
+  stash = "Hello\nWorld\nC!\n" (all data in one read if BUFFER_SIZE >= 13)
+           ^^^^^^
+           contains newline, so stop reading
+
+extract_line:
+  line = malloc(7) -> "Hello\n" (6 chars + null terminator)
+  Return: "Hello\n"
+
+ft_separate:
+  stash = malloc(11) -> "World\nC!\n"
+  Free old stash (13 bytes freed)
+  New stash = "World\nC!\n"
+
+Return "Hello\n" to caller
+Caller gets this string and must free it later
+
+
+CALL 2: get_next_line(fd)
+---------
+Starting state:
+  stash = "World\nC!\n" (from previous call)
+
+read_store:
+  Already has '\n' in stash, so while loop exits immediately
+  No additional read() calls needed
+  buff allocated and freed but barely used
+
+extract_line:
+  line = malloc(7) -> "World\n"
+  Return: "World\n"
+
+ft_separate:
+  stash = malloc(4) -> "C!\n"
+  Free old stash (10 bytes freed)
+  New stash = "C!\n"
+
+Return "World\n" to caller
+
+
+CALL 3: get_next_line(fd)
+---------
+Starting state:
+  stash = "C!\n"
+
+read_store:
+  Already has '\n', exit immediately
+
+extract_line:
+  line = malloc(4) -> "C!\n"
+  Return: "C!\n"
+
+ft_separate:
+  No data after '\n', so free stash and return NULL
+  stash = NULL
+
+Return "C!\n" to caller
+
+
+CALL 4: get_next_line(fd)
+---------
+Starting state:
+  stash = NULL
+
+read_store:
+  read() returns 0 (EOF on previous calls)
+  While loop exits with empty stash
+  Return NULL or empty stash
+
+extract_line:
+  stash is NULL or empty, return NULL
+
+Return NULL to caller (indicates end of file)
+
+================================================================================
+CRITICAL MEMORY MANAGEMENT RULES:
+================================================================================
+
+1. STASH PERSISTENCE:
+   - Static variable survives between calls
+   - Must handle NULL on first call
+   - Must be freed when function returns NULL (end of file)
+   - Each allocation replaces previous through ft_separate()
+
+2. ALLOCATED MEMORY:
+   - Line: caller's responsibility to free
+   - Buff: freed by read_store() after each call
+   - Stash: managed internally, freed/replaced as needed
+   - All NEW allocations happen in ft_strjoin() and ft_separate()
+
+3. ERROR HANDLING:
+   - If any malloc fails: free all related memory before returning NULL
+   - If read() fails: free buff and stash, return NULL
+   - Invalid fd: free and nullify stash
+
+4. NO MEMORY LEAKS:
+   - Buff: freed at end of read_store()
+   - Stash (old): freed by ft_strjoin() or ft_separate()
+   - Stash (final): persists or set to NULL at end of file
+   - Line: returned to caller who must free it
+
+================================================================================
+BUFFER_SIZE IMPACT:
+================================================================================
+
+BUFFER_SIZE = 1 (byte):
+  - Reads 1 byte at a time (slowest)
+  - Many read() system calls
+  - More ft_strjoin() operations (more allocations)
+  - Many memory reallocations as stash grows
+
+BUFFER_SIZE = 1024 (bytes):
+  - Reads 1KB at a time (faster)
+  - Fewer read() system calls
+  - Fewer allocations
+  - Stash grows in larger chunks
+
+Tradeoff: Speed vs memory efficiency
+
+================================================================================
+SUMMARY:
+================================================================================
+
+get_next_line is a line-reading function that demonstrates:
+- Static variable persistence across calls
+- Dynamic memory allocation and deallocation
+- String manipulation
+- File I/O with buffering
+- Edge case handling (EOF, errors, empty lines)
+
+Key insight: The static stash acts as a "buffer" between system reads
+and line extraction, allowing efficient reading and perfect line extraction.
+

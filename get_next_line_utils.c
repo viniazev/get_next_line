@@ -41,30 +41,30 @@ char	*ft_strchr(const char *s, int c)
 	return (NULL);
 }
 
-// void	*ft_memcpy(void *dest, const void *src, size_t n)
-// {
-// 	size_t				i;
-// 	unsigned char		*destine;
-// 	const unsigned char	*source;
+void	*ft_memcpy(void *dest, const void *src, size_t n)
+{
+	size_t				i;
+	unsigned char		*destine;
+	const unsigned char	*source;
 
-// 	if (!dest && !src)
-// 		return (NULL);
-// 	destine = (unsigned char *)dest;
-// 	source = (const unsigned char *)src;
-// 	i = 0;
-// 	while (i < n)
-// 	{
-// 		destine[i] = source[i];
-// 		i++;
-// 	}
-// 	return (dest);
-// }
+	if (!dest && !src)
+		return (NULL);
+	destine = (unsigned char *)dest;
+	source = (const unsigned char *)src;
+	i = 0;
+	while (i < n)
+	{
+		destine[i] = source[i];
+		i++;
+	}
+	return (dest);
+}
 
 char	*ft_strjoin(char *s1, char *s2)
 {
 	char	*catstr;
-	int		i;
-	int		j;
+	int		len_s1;
+	int		len_s2;
 
 	if (!s2)
 		return (free(s1), s1 = NULL, NULL);
@@ -75,15 +75,13 @@ char	*ft_strjoin(char *s1, char *s2)
 			return (free(s1), s1 = NULL, NULL);
 		s1[0] = '\0';
 	}
-	catstr = malloc(ft_strlen(s1) + ft_strlen(s2) + 1);
+	len_s1 = ft_strlen(s1);
+	len_s2 = ft_strlen(s2);
+	catstr = malloc(len_s1 + len_s2 + 1);
 	if (!catstr)
 		return (free(s1), s1 = NULL, NULL);
-	i = -1;
-	j = -1;
-	while (s1[++i])
-		catstr[i] = s1[i];
-	while (s2[++j])
-		catstr[i + j] = s2[j];
-	catstr[i + j] = '\0';
+	ft_memcpy(catstr, s1, len_s1);
+	ft_memcpy(catstr + len_s1, s2, len_s2);
+	catstr[len_s1 + len_s2] = '\0';
 	return (free(s1), catstr);
 }

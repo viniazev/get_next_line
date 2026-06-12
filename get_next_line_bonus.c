@@ -19,7 +19,7 @@ static char	*read_store(int fd, char *stash)
 
 	buff = malloc(sizeof(char) * BUFFER_SIZE + 1);
 	if (!buff)
-		return (NULL);
+		return (free(stash), NULL);
 	while (!ft_strchr(stash, '\n'))
 	{
 		readstatus = read(fd, buff, BUFFER_SIZE);
@@ -96,12 +96,10 @@ char	*get_next_line(int fd)
 	char		*line;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
-		return (NULL);
+		return (free(stash), stash = NULL, NULL);
 	tempstash = read_store(fd, stash);
 	if (!tempstash)
 	{
-		if (stash)
-			free(stash);
 		stash = NULL;
 		return (NULL);
 	}
