@@ -12,20 +12,14 @@
 
 #include "get_next_line.h"
 
-static char	*read_store(int fd, char *stash)
+static char	*read_store(int fd, char *stash, char *buff, size_t buff_size)
 {
-	int		readstatus;
-	char	*buff;
+	int	readstatus;
 
-	buff = malloc(sizeof(char) * BUFFER_SIZE + 1);
-	if (!buff)
-		return (free(stash), NULL);
 	while (!ft_strchr(stash, '\n'))
 	{
-		readstatus = read(fd, buff, BUFFER_SIZE);
-		if (readstatus == -1)
-			return (free(buff), free(stash), stash = NULL, NULL);
-		if (readstatus == 0)
+		readstatus = read(fd, buff, buff_size);
+		if (readstatus <= 0)
 			break ;
 		buff[readstatus] = '\0';
 		stash = ft_strjoin(stash, buff);
@@ -84,19 +78,18 @@ static char	*ft_separate(char *stash, int newline_pos)
 char	*get_next_line(int fd)
 {
 	static char	*stash;
-	char		*tempstash;
+	char		*buff;
 	char		*line;
 	int			newline_pos;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
-		return (free(stash), stash = NULL, NULL);
-	tempstash = read_store(fd, stash);
-	if (!tempstash)
-	{
-		stash = NULL;
-		return (NULL);
-	}
-	stash = tempstash;
+		return (/*free(stash), stash = NULL, */NULL);
+	buff = malloc(sizeof(char) * BUFFER_SIZE + 1);
+	if (!buff)
+		return (free(stash), NULL);
+	stash = read_store(fd, stash, buff, BUFFER_SIZE);
+	if (!stash)
+		return (stash = NULL, NULL);
 	newline_pos = 0;
 	while (stash[newline_pos] && stash[newline_pos] != '\n')
 		newline_pos++;
@@ -111,37 +104,37 @@ char	*get_next_line(int fd)
 	return (line);
 }
 
-void	read_file(char *av)
-{
-	int		op;
-	char	*buffer;
-	int		i;
+// void	read_file(char *av)
+// {
+// 	int		op;
+// 	char	*buffer;
+// 	int		i;
 
-	i = 0;
-	op = open(av, O_RDONLY);
-	if (op == -1)
-	{
-		write(2, "Cannot read file.\n", 18);
-		return ;
-	}
-	buffer = get_next_line(op);
-	while (buffer)
-	{
-		printf("[%d] %s", i, buffer);
-		free(buffer);
-		buffer = get_next_line(op);
-		i++;
-	}
-	close(op);
-}
+// 	i = 0;
+// 	op = open(av, O_RDONLY);
+// 	if (op == -1)
+// 	{
+// 		write(2, "Cannot read file.\n", 18);
+// 		return ;
+// 	}
+// 	buffer = get_next_line(op);
+// 	while (buffer)
+// 	{
+// 		printf("[%d] %s", i, buffer);
+// 		free(buffer);
+// 		buffer = get_next_line(op);
+// 		i++;
+// 	}
+// 	close(op);
+// }
 
-int	main(int ac, char **av)
-{
-	if (ac == 1)
-		write(2, "File name missing.\n", 19);
-	else if (ac > 2)
-		write(2, "Too many arguments.\n", 20);
-	else
-		read_file(av[1]);
-	return (0);
-}
+// int	main(int ac, char **av)
+// {
+// 	if (ac == 1)
+// 		write(2, "File name missing.\n", 19);
+// 	else if (ac > 2)
+// 		write(2, "Too many arguments.\n", 20);
+// 	else
+// 		read_file(av[1]);
+// 	return (0);
+// }
