@@ -6,53 +6,59 @@
 /*   By: vinida-s <vinida-s@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/22 21:09:01 by vinida-s          #+#    #+#             */
-/*   Updated: 2026/06/09 23:19:29 by vinida-s         ###   ########.fr       */
+/*   Updated: 2026/06/05 18:40:12 by vinida-s         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 #include "get_next_line.h"
 
 static char	*read_store(int fd, char *stash, char *buff, size_t buff_size)
 {
-	int	readstatus;
+	ssize_t	readstatus;
 
-	while (!ft_strchr(stash, '\n'))
+	readstatus = read(fd, buff, buff_size);
+	if (readstatus == -1)
 	{
-		readstatus = read(fd, buff, buff_size);
-		if (readstatus <= 0)
-			break ;
+		if (stash)
+			free(stash);
+		return (free(buff), NULL);
+	}
+	while (readstatus > 0)
+	{
 		buff[readstatus] = '\0';
 		stash = ft_strjoin(stash, buff);
+		if (ft_strchr(buff, '\n'))
+			break ;
+		readstatus = read(fd, buff, buff_size);
+		if (readstatus == -1)
+		{
+			if (stash)
+				free(stash);
+			return (free(buff), NULL);
+		}
 	}
-	free(buff);
+	free (buff);
 	return (stash);
 }
 
 static char	*extract_line(char *stash, int newline_pos)
 {
 	char	*line;
-	int		i;
 
 	if (stash == NULL || !stash[0])
 		return (NULL);
-	line = malloc(sizeof(char) * (newline_pos + 1));
+	line = malloc(newline_pos + 1);
 	if (!line)
 		return (NULL);
-	i = 0;
-	while (i < newline_pos)
-	{
-		line[i] = stash[i];
-		i++;
-	}
-	line[i] = '\0';
+	ft_memcpy(line, stash, newline_pos);
+	line[newline_pos] = '\0';
 	return (line);
 }
 
 static char	*ft_separate(char *stash, int newline_pos)
 {
 	size_t	i;
-	size_t	j;
 	char	*str;
+	int		len;
 
 	if (!stash)
 		return (NULL);
@@ -60,17 +66,12 @@ static char	*ft_separate(char *stash, int newline_pos)
 	if (!stash[i] || !stash[i + 1])
 		return (free(stash), stash = NULL, NULL);
 	i++;
-	str = malloc(sizeof(char) * (ft_strlen(stash + i) + 1));
+	len = ft_strlen(stash + i);
+	str = malloc(sizeof(char) * (len + 1));
 	if (!str)
 		return (free(stash), stash = NULL, NULL);
-	j = 0;
-	while (stash[i])
-	{
-		str[j] = stash[i];
-		j++;
-		i++;
-	}
-	str[j] = '\0';
+	ft_memcpy(str, stash + i, len);
+	str[len] = '\0';
 	free(stash);
 	return (str);
 }
@@ -83,10 +84,10 @@ char	*get_next_line(int fd)
 	int			newline_pos;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
-		return (/*free(stash), stash = NULL, */NULL);
-	buff = malloc(sizeof(char) * BUFFER_SIZE + 1);
+		return (NULL);
+	buff = malloc(BUFFER_SIZE + 1);
 	if (!buff)
-		return (free(stash), NULL);
+		return (free(stash), stash = NULL, NULL);
 	stash = read_store(fd, stash, buff, BUFFER_SIZE);
 	if (!stash)
 		return (stash = NULL, NULL);

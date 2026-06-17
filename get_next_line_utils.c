@@ -6,7 +6,7 @@
 /*   By: vinida-s <vinida-s@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/25 19:56:29 by vinida-s          #+#    #+#             */
-/*   Updated: 2026/06/09 23:27:54 by vinida-s         ###   ########.fr       */
+/*   Updated: 2026/06/05 18:09:22 by vinida-s         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,19 +26,19 @@ int	ft_strlen(const char *s)
 	return (i);
 }
 
-char	*ft_strchr(const char *s, int c)
+int	ft_strchr(const char *s, int c)
 {
+	int i;
 	if (!s)
-		return (NULL);
-	while (*s)
+		return (0);
+	i = 0;
+	while (s[i])
 	{
-		if (*s == (char)c)
-			return ((char *)s);
-		s++;
+		if (s[i] == (char)c)
+			return (1);
+		i++;
 	}
-	if (*s == (char)c)
-		return ((char *)s);
-	return (NULL);
+	return (0);
 }
 
 void	*ft_memcpy(void *dest, const void *src, size_t n)
